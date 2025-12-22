@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}Employer Dashboard - JobPortal{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-5">
+    <div>
+        <h1 class="display-5 fw-bold mb-1">Your Jobs, {{ user.username }}</h1>
+        <p class="lead text-muted mb-0">{{ jobs|length }} active job{{ jobs|length|pluralize }}</p>
+    </div>
+    <!-- ✅ FIXED: Namespaced URL -->
+    <a href="{% url 'jobs:job_create' %}" class="btn btn-primary btn-lg px-5 py-3 shadow-lg">
+        <i class="fas fa-plus me-2"></i>Post New Job
+    </a>
+</div>
+
+<!-- Messages -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm mb-4" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 shadow-lg h-100 text-center bg-primary text-white hover-lift">
+            <div class="card-body py-4">
+                <i class="fas fa-briefcase fa-3x mb-3 opacity-75"></i>
+                <h2 class="display-4 fw-bold mb-1">{{ jobs|length }}</h2>
+                <p class="lead mb-0">Active Jobs</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 shadow-lg h-100 text-center bg-success text-white hover-lift">
+            <div class="card-body py-4">
+                <i class="fas fa-users fa-3x mb-3 opacity-75"></i>
+                <h2 class="display-4 fw-bold mb-1">{{ jobs|applications__count__sum|default:0 }}</h2>
+                <p class="lead mb-0">Total Applications</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 shadow-lg h-100 text-center bg-info text-white hover-lift">
+            <div class="card-body py-4">
+                <i class="fas fa-clock fa-3x mb-3 opacity-75"></i>
+                <h2 class="display-4 fw-bold mb-1">
+                    {% if jobs %}
+                        {{ jobs.0.created_at|timesince }} ago
+                    {% else %}
+                        -
+                    {% endif %}
+                </h2>
+                <p class="lead mb-0">Latest Post</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <a href="{% url 'jobs:employer_all_applications' %}" class="card border-0 shadow-lg h-100 text-decoration-none hover-lift">
+            <div class="card-body py-4 text-center text-info">
+                <i class="fas fa-list fa-3x mb-3 opacity-75"></i>
+                <h4 class="fw-bold mb-1">View All Applications</h4>
+                <p class="lead mb-0">Across all jobs</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Jobs Grid -->
+<div class="row g-4">
+    {% for job in jobs %}
+    <div class="col-xl-4 col-lg-6 col-md-6">
+        <div class="card h-100 border-0 shadow-sm hover-lift overflow-hidden">
+            <div class="card-header bg-gradient-primary text-white p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="mb-1 fw-bold">{{ job.title }}</h5>
+                        <p class="mb-0 small opacity-90">{{ job.company_name }}</p>
+                    </div>
+                    <span class="badge bg-light text-dark fs-6">
+                        {{ job.get_employment_type_display }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body d-flex flex-column p-4">
+                <div class="mb-3">
+                    <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                    <span class="text-muted">{{ job.location }}</span>
+                </div>
+                
+                {% if job.salary %}
+                <div class="mb-3 p-3 bg-light rounded-3">
+                    <i class="fas fa-rupee-sign text-success me-1"></i>
+                    <span class="fw-bold text-success fs-5">₹{{ job.salary }}/month</span>
+                </div>
+                {% endif %}
+                
+                <div class="flex-grow-1 mb-3">
+                    <small class="text-muted d-block mb-2">Posted: {{ job.created_at|date:"M d, Y" }}</small>
+                    {% if job.last_date %}
+                        <small class="text-warning">
+                            <i class="fas fa-calendar-times me-1"></i>
+                            Closes {{ job.last_date|date:"M d" }}
+                        </small>
+                    {% endif %}
+                </div>
+                
+                <!-- Applications Badge -->
+                <div class="mb-4">
+                    <span class="badge bg-info fs-5 px-4 py-3 w-100 d-block">
+                        <i class="fas fa-users me-2"></i>
+                        {{ job.applications.count }} Application{{ job.applications.count|pluralize }}
+                    </span>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="btn-group w-100" role="group">
+                    <!-- ✅ FIXED: Namespaced URL -->
+                    <a href="{% url 'jobs:employer_job_applications' job.pk %}" 
+                       class="btn btn-primary w-100 mb-2">
+                        <i class="fas fa-users me-1"></i>View Applicants
+                    </a>
+                    <a href="{% url 'jobs:job_create' %}?edit={{ job.pk }}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-edit me-1"></i>Edit Job
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-8 bg-light rounded-4 p-5 shadow-lg">
+            <div class="display-1 text-muted mb-5">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <h2 class="fw-light mb-4 display-4">No jobs posted yet</h2>
+            <p class="lead text-muted mb-5 lh-lg">Start building your dream team by posting your first job opening!</p>
+            <!-- ✅ FIXED: Namespaced URL -->
+            <a href="{% url 'jobs:job_create' %}" class="btn btn-primary btn-lg px-6 py-3 shadow-lg">
+                <i class="fas fa-plus-circle me-3"></i>Post Your First Job
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

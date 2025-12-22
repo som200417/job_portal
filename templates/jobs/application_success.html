@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="alert alert-success">
+    <h2>Application Submitted!</h2>
+    <p>Your application has been sent to the employer.</p>
+    <a href="{% url 'jobs:job_list' %}" class="btn btn-primary">View More Jobs</a>
+</div>
+{% endblock %}

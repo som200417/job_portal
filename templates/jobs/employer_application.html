@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Applications - JobPortal{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-5">
+    <div>
+        <h1 class="display-5 fw-bold mb-1">Job Applications</h1>
+        {% if job %}
+            <p class="lead text-muted mb-0">{{ job.title }} ({{ job.company_name }})</p>
+        {% else %}
+            <p class="lead text-muted mb-0">All your job applications</p>
+        {% endif %}
+    </div>
+    <!-- ✅ FIXED: Namespaced URL -->
+    <a href="{% url 'jobs:employer_dashboard' %}" class="btn btn-outline-primary btn-lg px-4">
+        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+</div>
+
+<!-- Messages -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm mb-4" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Applications Grid -->
+<div class="row g-4">
+    {% for application in applications %}
+    <div class="col-xl-4 col-lg-6 col-md-6">
+        <div class="card h-100 border-0 shadow-sm hover-lift overflow-hidden">
+            <div class="card-header bg-light border-bottom">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <!-- ✅ applicant = User (direct) -->
+                        <h6 class="mb-1 fw-bold">{{ application.applicant.username }}</h6>
+                        <small class="text-muted">{{ application.applicant.email|default:"No email" }}</small>
+                    </div>
+                    <span class="badge fs-6 px-3 py-2 fw-semibold 
+                        {% if application.status == 'hired' %}bg-success 
+                        {% elif application.status == 'shortlisted' %}bg-warning text-dark 
+                        {% elif application.status == 'rejected' %}bg-danger 
+                        {% else %}bg-secondary {% endif %}">
+                        {{ application.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <!-- Resume -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold small text-muted mb-2 d-block">Resume</label>
+                    {% if application.resume %}
+                        <a href="{{ application.resume.url }}" target="_blank" download 
+                           class="btn btn-outline-primary btn-sm w-100 text-start">
+                            <i class="fas fa-download me-2"></i>{{ application.resume.name }}
+                        </a>
+                    {% else %}
+                        <span class="badge bg-secondary w-100 text-start py-2">No resume attached</span>
+                    {% endif %}
+                </div>
+                
+                <!-- Cover Letter -->
+                {% if application.cover_letter %}
+                <div class="mb-4">
+                    <label class="form-label fw-semibold small text-muted mb-2 d-block">Cover Letter</label>
+                    <p class="small lh-sm text-dark bg-light p-3 rounded-3">{{ application.cover_letter|truncatewords:25 }}</p>
+                </div>
+                {% endif %}
+                
+                <!-- Applied Date -->
+                <div class="mb-4">
+                    <small class="text-muted">
+                        <i class="fas fa-clock me-1"></i>
+                        Applied {{ application.applied_at|timesince }} ago
+                    </small>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+                <!-- ✅ FIXED: Namespaced URL -->
+                <a href="{% url 'jobs:update_application_status' job_id=job.id pk=application.pk %}" 
+                   class="btn btn-outline-primary w-100 fw-semibold shadow-sm">
+                    <i class="fas fa-edit me-2"></i>
+                    {{ application.get_status_display|title }} → Change Status
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-8 bg-light rounded-4 p-5 shadow-lg">
+            <div class="display-1 text-muted mb-5">
+                <i class="fas fa-inbox"></i>
+            </div>
+            <h2 class="fw-light mb-4 display-4">No applications yet</h2>
+            <p class="lead text-muted mb-5 lh-lg">
+                {% if job %}
+                    No one has applied to <strong>"{{ job.title }}"</strong> yet.
+                {% else %}
+                    No applications received across all your jobs.
+                {% endif %}
+            </p>
+            <a href="{% url 'jobs:employer_dashboard' %}" class="btn btn-outline-primary btn-lg px-5 py-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

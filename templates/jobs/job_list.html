@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}Job Listings - JobPortal{% endblock %}
+
+{% block content %}
+<!-- Hero Header -->
+<div class="row mb-5">
+    <div class="col-12 text-center">
+        <h1 class="display-4 fw-bold mb-3">Find Your Dream Job</h1>
+        <p class="lead text-muted mb-4">Discover thousands of opportunities across India</p>
+        <div class="search-bar shadow-lg p-4 rounded-4 bg-white">
+            <div class="row g-3">
+                <div class="col-lg-4">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control form-control-lg" placeholder="Job title, company...">
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <select class="form-select form-select-lg">
+                        <option>Location</option>
+                        <option>Delhi</option>
+                        <option>Mumbai</option>
+                        <option>Bengaluru</option>
+                    </select>
+                </div>
+                <div class="col-lg-3">
+                    <select class="form-select form-select-lg">
+                        <option>Any Type</option>
+                        <option>Full Time</option>
+                        <option>Remote</option>
+                    </select>
+                </div>
+                <div class="col-lg-2">
+                    <button class="btn btn-primary btn-lg w-100">Search</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Jobs Grid -->
+<div class="row g-4 mb-5">
+    {% for job in jobs %}
+    <div class="col-xl-4 col-lg-6 col-md-6">
+        <div class="card h-100 border-0 shadow-sm hover-lift overflow-hidden">
+            <div class="card-header bg-gradient-primary text-white p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="mb-1 fw-bold">{{ job.title }}</h5>
+                        <p class="mb-0 small opacity-90">{{ job.company_name }}</p>
+                    </div>
+                    <span class="badge bg-light text-dark fs-6">{{ job.applications.count }} Applied</span>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center text-muted mb-3">
+                    <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                    <span>{{ job.location }}</span>
+                </div>
+                
+                {% if job.salary %}
+                <div class="mb-3 p-3 bg-light rounded-3">
+                    <i class="fas fa-rupee-sign text-success me-1"></i>
+                    <span class="h6 fw-bold text-success">₹{{ job.salary }}/month</span>
+                </div>
+                {% endif %}
+                
+                <p class="small lh-sm text-muted mb-4">{{ job.description|truncatewords:25 }}</p>
+                
+                <div class="d-flex gap-2 mb-3">
+                    <span class="badge bg-primary">{{ job.get_employment_type_display }}</span>
+                    {% if job.last_date %}
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-clock me-1"></i>
+                            {{ job.last_date|date:"M d" }}
+                        </span>
+                    {% endif %}
+                </div>
+                
+                {% if user.is_authenticated %}
+                    <a href="{% url 'jobs:job_detail' job.pk %}" class="btn btn-primary w-100 mb-2">
+                        <i class="fas fa-eye me-1"></i>View Details
+                    </a>
+                    {% if not user.jobs.exists %}
+                        <a href="{% url 'jobs:apply_job' job.pk %}" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-paper-plane me-1"></i>Quick Apply
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-sign-in-alt me-1"></i>Login to Apply
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-8 bg-light rounded-4 p-5 shadow">
+            <i class="fas fa-briefcase fa-5x text-muted mb-4"></i>
+            <h2 class="fw-light mb-4 display-4">No jobs available</h2>
+            <p class="lead text-muted mb-5">Be the first to post a job or check back soon!</p>
+            {% if user.jobs.exists %}
+                <a href="{% url 'jobs:job_create' %}" class="btn btn-primary btn-lg px-5 py-3">
+                    <i class="fas fa-plus-circle me-2"></i>Post Your First Job
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if jobs.has_other_pages %}
+<nav aria-label="Job listings navigation">
+    <ul class="pagination justify-content-center">
+        {% if jobs.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ jobs.previous_page_number }}">Previous</a>
+            </li>
+        {% endif %}
+        
+        {% for num in jobs.paginator.page_range %}
+            {% if jobs.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > jobs.number|add:'-3' and num < jobs.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if jobs.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ jobs.next_page_number }}">Next</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

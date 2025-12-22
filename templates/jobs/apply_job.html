@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Apply for {{ job.title }} - JobPortal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center min-vh-70 d-flex align-items-center">
+    <div class="col-lg-8 col-xl-6">
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-gradient-success text-white p-5 text-center">
+                <div class="mb-4">
+                    <div class="bg-white bg-opacity-20 rounded-circle p-4 mx-auto mb-4 d-inline-block" style="width: 100px; height: 100px;">
+                        <i class="fas fa-paper-plane fa-3x text-white"></i>
+                    </div>
+                </div>
+                <h1 class="display-5 fw-bold mb-2">Apply for {{ job.title }}</h1>
+                <p class="lead mb-0 opacity-90">{{ job.company_name }} • {{ job.location }}</p>
+            </div>
+            
+            <div class="card-body p-5 p-lg-6">
+                <!-- Messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 mb-4 shadow-sm">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Apply Form -->
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="mb-5">
+                        <label for="{{ form.cover_letter.id_for_label }}" class="form-label fw-bold mb-3">
+                            <i class="fas fa-edit text-primary me-2"></i>Why You?
+                        </label>
+                        {{ form.cover_letter }}
+                        {% if form.cover_letter.errors %}
+                            <div class="invalid-feedback d-block mt-2">{{ form.cover_letter.errors }}</div>
+                        {% endif %}
+                        <div class="form-text mt-2">Tell us why you're perfect for this role (200-500 words)</div>
+                    </div>
+
+                    <div class="mb-5">
+                        <label for="{{ form.resume.id_for_label }}" class="form-label fw-bold mb-3">
+                            <i class="fas fa-file-pdf text-danger me-2"></i>Upload Resume
+                        </label>
+                        {{ form.resume }}
+                        {% if form.resume.errors %}
+                            <div class="invalid-feedback d-block mt-2">{{ form.resume.errors }}</div>
+                        {% endif %}
+                        <div class="form-text mt-2">PDF, DOC, DOCX (Max 5MB) • Your latest resume</div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-success btn-lg px-5 py-3 fw-bold shadow-lg flex-fill">
+                            <i class="fas fa-paper-plane me-2"></i>Submit Application
+                        </button>
+                        <!-- ✅ FIXED: Namespaced URLs -->
+                        <a href="{% url 'jobs:job_detail' job.pk %}" class="btn btn-outline-secondary btn-lg px-5 py-3">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Job
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<style>
+.bg-gradient-success {
+    background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+}
+.min-vh-70 {
+    min-height: 70vh;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+}
+</style>

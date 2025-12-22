@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}Seeker Dashboard - JobPortal{% endblock %}
+
+{% block content %}
+<!-- Hero Header -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="d-flex align-items-center mb-4">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                <i class="fas fa-user fa-lg"></i>
+            </div>
+            <div>
+                <h1 class="fw-bold mb-1">Welcome back, {{ user.username }}!</h1>
+                <p class="lead text-muted mb-0">Track your job applications and find new opportunities</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 shadow-lg h-100 text-center bg-primary text-white hover-lift">
+            <div class="card-body py-4">
+                <i class="fas fa-file-check fa-3x mb-3 opacity-75"></i>
+                <h2 class="display-4 fw-bold mb-1">{{ applied_count }}</h2>
+                <p class="lead mb-0">Total Applications</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 shadow-lg h-100 text-center bg-success text-white hover-lift">
+            <div class="card-body py-4">
+                <i class="fas fa-clock fa-3x mb-3 opacity-75"></i>
+                <h2 class="display-4 fw-bold mb-1">{{ recent_jobs|length }}</h2>
+                <p class="lead mb-0">New Jobs Today</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Applications -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">Recent Applications</h2>
+            <a href="{% url 'jobs:seeker_applications' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-list me-2"></i>View All Applications
+            </a>
+        </div>
+        
+        {% for application in user.applications.all|slice:":3" %}
+        <div class="card mb-4 shadow-sm hover-lift">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="fw-bold mb-1">{{ application.job.title }}</h5>
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-building me-1"></i>{{ application.job.company_name }}
+                            </small>
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ application.job.location }}
+                            </small>
+                        </div>
+                        {% if application.job.salary %}
+                            <small class="badge bg-success">₹{{ application.job.salary }}/month</small>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <span class="badge fs-5 px-4 py-2 fw-semibold 
+                            {% if application.status == 'hired' %}bg-success 
+                            {% elif application.status == 'shortlisted' %}bg-warning text-dark 
+                            {% elif application.status == 'rejected' %}bg-danger 
+                            {% else %}bg-secondary {% endif %}">
+                            {{ application.get_status_display }}
+                        </span>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                {{ application.applied_at|date:"M d, Y" }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 bg-light rounded-4">
+            <i class="fas fa-inbox fa-4x text-muted mb-4"></i>
+            <h3 class="fw-light mb-3">No applications yet</h3>
+            <p class="lead text-muted mb-4">Start applying to jobs to track your progress here!</p>
+            <a href="{% url 'jobs:job_list' %}" class="btn btn-primary btn-lg px-5">
+                <i class="fas fa-search me-2"></i>Find Jobs Now
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-4">
+    <div class="col-lg-4 col-md-6">
+        <a href="{% url 'jobs:job_list' %}" class="card border-0 shadow-sm h-100 text-decoration-none hover-lift">
+            <div class="card-body text-center py-5">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4 mx-auto" style="width: 80px; height: 80px;">
+                    <i class="fas fa-search fa-2x text-primary"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Find New Jobs</h4>
+                <p class="text-muted mb-0">Discover your next opportunity</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <a href="{% url 'jobs:seeker_applications' %}" class="card border-0 shadow-sm h-100 text-decoration-none hover-lift">
+            <div class="card-body text-center py-5">
+                <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4 mx-auto" style="width: 80px; height: 80px;">
+                    <i class="fas fa-list-check fa-2x text-success"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Track Applications</h4>
+                <p class="text-muted mb-0">Monitor all your applications</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <a href="#" class="card border-0 shadow-sm h-100 text-decoration-none hover-lift">
+            <div class="card-body text-center py-5">
+                <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4 mx-auto" style="width: 80px; height: 80px;">
+                    <i class="fas fa-user-edit fa-2x text-info"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Update Profile</h4>
+                <p class="text-muted mb-0">Complete your professional profile</p>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}{{ job.title }} - JobPortal{% endblock %}
+
+{% block content %}
+<!-- Hero Job Header -->
+<div class="row g-4 mb-5">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-lg h-100">
+            <div class="card-body p-5">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <h1 class="fw-bold display-5 mb-2">{{ job.title }}</h1>
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <span class="badge bg-primary fs-6 px-3 py-2">{{ job.get_employment_type_display }}</span>
+                            {% if job.salary %}
+                                <span class="h4 fw-bold text-success mb-0">₹{{ job.salary }}/month</span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex align-items-center gap-4 text-muted mb-4">
+                            <span><i class="fas fa-building me-1"></i>{{ job.company_name }}</span>
+                            <span><i class="fas fa-map-marker-alt me-1"></i>{{ job.location }}</span>
+                            <span><i class="fas fa-calendar me-1"></i>{{ job.created_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-info fs-5 px-4 py-3">
+                            <i class="fas fa-users me-2"></i>{{ job.applications.count }} applicants
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Job Description -->
+                <div class="mb-5">
+                    <h3 class="fw-bold mb-4">About the Role</h3>
+                    <p class="lead lh-lg text-dark">{{ job.description|linebreaks }}</p>
+                </div>
+
+                <!-- Requirements -->
+                {% if job.requirements %}
+                <div class="mb-5">
+                    <h4 class="fw-bold mb-4">
+                        <i class="fas fa-check-circle text-success me-2"></i>Requirements
+                    </h4>
+                    <div class="p-4 bg-light rounded-3">
+                        {{ job.requirements|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Apply Sidebar -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-lg sticky-top" style="top: 20px;">
+            <div class="card-body p-4">
+                {% if user.is_authenticated and not user.jobs.exists %}
+                    {% if already_applied %}
+                    <div class="text-center p-5 bg-light rounded-4">
+                        <div class="display-5 text-success mb-4">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Already Applied!</h4>
+                        <p class="text-muted mb-4">Your application is under review.</p>
+                        <span class="badge bg-success fs-6 px-4 py-2 mb-3 d-block">
+                            Track in Dashboard
+                        </span>
+                        <!-- ✅ FIXED: Namespaced URL -->
+                        <a href="{% url 'jobs:seeker_applications' %}" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-list-check me-2"></i>View Applications
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="apply-section">
+                        <div class="text-center mb-4">
+                            <h4 class="fw-bold text-primary mb-2">Ready to Apply?</h4>
+                            <p class="text-muted">Takes 30 seconds</p>
+                        </div>
+                        
+                        <!-- ✅ FIXED: Namespaced URL -->
+                        <form method="post" action="{% url 'jobs:apply_job' job.pk %}" enctype="multipart/form-data" novalidate>
+                            {% csrf_token %}
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Cover Letter</label>
+                                {{ form.cover_letter }}
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Upload Resume</label>
+                                {{ form.resume }}
+                                <div class="form-text">PDF, DOC, DOCX (Max 5MB)</div>
+                            </div>
+                            {% if form.errors %}
+                                <div class="alert alert-danger">
+                                    <ul class="mb-0">
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                            <button type="submit" class="btn btn-success btn-lg w-100 fw-bold">
+                                <i class="fas fa-paper-plane me-2"></i>Apply Now
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                {% elif user.jobs.exists %}
+                    <div class="text-center p-5 bg-light rounded-4">
+                        <i class="fas fa-briefcase fa-4x text-muted mb-4"></i>
+                        <h5 class="fw-bold text-muted mb-3">Employer Account</h5>
+                        <p class="text-muted mb-4">Switch to seeker account to apply</p>
+                        <!-- ✅ FIXED: Namespaced URL -->
+                        <a href="{% url 'jobs:employer_dashboard' %}" class="btn btn-outline-primary">
+                            View Your Jobs
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center p-5 bg-light rounded-4">
+                        <i class="fas fa-sign-in-alt fa-4x text-primary mb-4"></i>
+                        <h5 class="fw-bold mb-3">Login to Apply</h5>
+                        <p class="text-muted mb-4">Create your free account to apply instantly</p>
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg w-100 mb-2">Login</a>
+                        <p class="text-muted small mb-0">or</p>
+                        <a href="{% url 'signup' %}" class="btn btn-outline-primary btn-lg w-100">Sign Up Free</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<style>
+.apply-section input[type="file"] {
+    padding: 0.5rem;
+}
+.sticky-top {
+    position: sticky;
+    top: 20px;
+}
+@media (max-width: 991px) {
+    .sticky-top {
+        position: relative;
+        top: 0;
+    }
+}
+</style>

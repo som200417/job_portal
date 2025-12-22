@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Update Status - JobPortal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-0 rounded-4 h-100">
+            <div class="card-header bg-gradient-primary text-white p-4">
+                <h4 class="mb-0 fw-bold">
+                    <i class="fas fa-edit me-2"></i>Update Application Status
+                </h4>
+            </div>
+            <div class="card-body p-5">
+                <!-- Application Info -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-user fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0">{{ application.applicant.username }}</h6>
+                                <small class="text-muted">{{ application.applicant.email }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <h6 class="fw-bold text-primary mb-1">{{ job.title }}</h6>
+                        <small class="text-muted">{{ job.company_name }}</small>
+                    </div>
+                </div>
+
+                <!-- Current Status -->
+                <div class="mb-4 p-3 bg-light rounded-3">
+                    <label class="form-label fw-bold mb-2 d-block">Current Status:</label>
+                    <span class="badge fs-5 px-4 py-3 fw-semibold bg-secondary">
+                        {{ application.get_status_display }}
+                    </span>
+                </div>
+
+                <!-- Update Form -->
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.status.id_for_label }}" class="form-label fw-bold mb-2">
+                            New Status <span class="text-muted small">(Required)</span>
+                        </label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.status.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger mb-4">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-success btn-lg flex-fill fw-bold shadow-sm">
+                            <i class="fas fa-check-circle me-2"></i>Update Status
+                        </button>
+                        <!-- ✅ FIXED: Namespaced URL -->
+                        <a href="{% url 'jobs:employer_job_applications' job_id=job.id %}" 
+                           class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+}
+.form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+</style>

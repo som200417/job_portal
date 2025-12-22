@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}My Applications - JobPortal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-5">
+    <div>
+        <h1 class="fw-bold mb-0 display-5">Your Applications</h1>
+        <small class="text-muted fs-5">({{ applications|length }})</small>
+    </div>
+    <!-- ✅ FIXED: Namespaced URL -->
+    <a href="{% url 'jobs:seeker_dashboard' %}" class="btn btn-outline-primary btn-lg px-4">
+        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+</div>
+
+<div class="row g-4">
+    {% for application in applications %}
+    <div class="col-xl-4 col-lg-6 col-md-6">
+        <div class="card h-100 glass-card position-relative overflow-hidden hover-lift">
+            <div class="card-header bg-gradient-primary text-white p-4 position-relative">
+                <h5 class="mb-1 fw-bold">{{ application.job.title }}</h5>
+                <p class="mb-0 small opacity-90">{{ application.job.company_name }}</p>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center text-muted mb-3">
+                    <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                    <span class="fw-semibold">{{ application.job.location }}</span>
+                </div>
+                
+                {% if application.job.salary %}
+                <div class="mb-4 p-3 bg-light rounded-3">
+                    <i class="fas fa-rupee-sign text-success me-1"></i>
+                    <span class="h5 fw-bold text-success">₹{{ application.job.salary }}/mo</span>
+                </div>
+                {% endif %}
+                
+                {% if application.cover_letter %}
+                <div class="mb-4">
+                    <small class="text-muted d-block mb-2 fw-semibold">Cover Letter:</small>
+                    <p class="small lh-sm text-dark">{{ application.cover_letter|truncatewords:20 }}</p>
+                </div>
+                {% endif %}
+                
+                <!-- Status Footer -->
+                <div class="position-absolute bottom-0 start-0 end-0 p-4 bg-gradient-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge status-badge-large 
+                            {% if application.status == 'hired' %}bg-success 
+                            {% elif application.status == 'shortlisted' %}bg-warning text-dark 
+                            {% elif application.status == 'rejected' %}bg-danger 
+                            {% else %}bg-secondary {% endif %}">
+                            {{ application.get_status_display }}
+                        </span>
+                        <small class="text-muted fw-semibold">
+                            <i class="fas fa-clock me-1"></i>
+                            {{ application.applied_at|date:"M d, Y" }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-8 bg-light rounded-4 p-5 shadow-sm">
+            <div class="display-1 text-muted mb-5">
+                <i class="fas fa-inbox"></i>
+            </div>
+            <h2 class="fw-light mb-4 display-4">No applications yet</h2>
+            <p class="lead text-muted mb-5 lh-lg">Start applying to jobs to track your progress and see your application status updates here!</p>
+            <!-- ✅ FIXED: Namespaced URL -->
+            <a href="{% url 'jobs:job_list' %}" class="btn btn-primary btn-lg px-6 py-3 shadow-lg">
+                <i class="fas fa-search me-3"></i>Find Jobs Now
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+<style>
+.glass-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+}
+
+.glass-card:hover {
+    transform: translateY(-12px) !important;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.15) !important;
+    border-color: rgba(102, 126, 234, 0.3) !important;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.bg-gradient-white {
+    background: linear-gradient(transparent, rgba(255,255,255,0.95)) !important;
+}
+
+.status-badge-large {
+    font-size: 0.875rem !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 50px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.py-8 { padding-top: 5rem !important; padding-bottom: 5rem !important; }
+.px-6 { padding-left: 3rem !important; padding-right: 3rem !important; }
+</style>
