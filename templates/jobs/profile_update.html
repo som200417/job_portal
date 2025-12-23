@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}
+  Update Profile - JobPortal
+{% endblock %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+      <!-- ✅ FIXED: COMPLETE CARD STRUCTURE -->
+      <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+        <!-- ✅ HEADER INSIDE CARD -->
+        <div class="card-header bg-gradient-primary text-white p-5 text-center position-relative overflow-hidden">
+          <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-20"></div>
+
+          <div class="avatar-xl mx-auto mb-4 bg-white bg-opacity-30 backdrop-blur-sm rounded-circle d-flex align-items-center justify-content-center position-relative z-2">
+            <i class="fas fa-user-edit fa-3x text-primary fw-bold"></i>
+          </div>
+
+          <h1 class="display-5 fw-bold mb-2 position-relative z-2 text-white-emphasis">Complete Your Profile</h1>
+          <p class="lead mb-0 position-relative z-2 opacity-95 text-white-emphasis">Make your profile stand out to employers</p>
+        </div>
+
+        <!-- ✅ BODY INSIDE CARD -->
+        <div class="card-body p-5 p-lg-6">
+          <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+
+            <!-- ✅ ALL YOUR FORM FIELDS - PERFECT -->
+            <div class="row g-4">
+              <div class="col-md-6">
+                <label class="form-label fw-bold mb-2">Phone Number</label>
+                {{ form.phone }}
+                {% if form.phone.errors %}
+                  <div class="text-danger small mt-1">{{ form.phone.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold mb-2">Skills</label>
+                {{ form.skills }}
+                <div class="form-text small">Comma separated: Python, Django, React</div>
+                {% if form.skills.errors %}
+                  <div class="text-danger small mt-1">{{ form.skills.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-4 mt-4">
+              <div class="col-md-6">
+                <label class="form-label fw-bold mb-2">LinkedIn</label>
+                {{ form.linkedin }}
+                {% if form.linkedin.errors %}
+                  <div class="text-danger small mt-1">{{ form.linkedin.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold mb-2">GitHub</label>
+                {{ form.github }}
+                {% if form.github.errors %}
+                  <div class="text-danger small mt-1">{{ form.github.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <label class="form-label fw-bold mb-2">Professional Bio</label>
+              {{ form.bio }}
+              <div class="form-text small mt-1">Tell employers about your experience (max 500 chars)</div>
+              {% if form.bio.errors %}
+                <div class="text-danger small mt-1">{{ form.bio.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mt-4">
+              <label class="form-label fw-bold mb-2">Resume/CV</label>
+              {{ form.resume }}
+              <div class="form-text small mt-1">Optional - PDF, DOC (max 5MB)</div>
+              {% if form.resume.errors %}
+                <div class="text-danger small mt-1">{{ form.resume.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="d-flex gap-3 mt-5">
+              <button type="submit" class="btn btn-primary btn-lg px-5 py-3 fw-bold shadow-lg flex-fill"><i class="fas fa-save me-2"></i>Save Profile</button>
+              <a href="{% url 'jobs:seeker_dashboard' %}" class="btn btn-outline-secondary btn-lg px-5 py-3"><i class="fas fa-arrow-left me-2"></i>Dashboard</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+async function initProfileForm() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch('/jobs/api/profile/', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            const profile = await response.json();
+            // Auto-fill form
+            document.querySelector('[name="phone"]').value = profile.phone || '';
+            document.querySelector('[name="skills"]').value = profile.skills || '';
+            // ... fill other fields
+        }
+    } catch (error) {
+        console.error('Profile init failed:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initProfileForm);
+</script>
+{% endblock %}
+
+<!-- ✅ YOUR CSS - PERFECT -->
+<style>
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #6610f2 50%, #198754 100%) !important;
+  }
+  .avatar-xl {
+    width: 120px;
+    height: 120px;
+  }
+  .text-white-emphasis {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.98) !important;
+  }
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+  }
+</style>

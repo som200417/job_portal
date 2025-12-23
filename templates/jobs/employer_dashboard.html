@@ -35,15 +35,16 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="card border-0 shadow-lg h-100 text-center bg-success text-white hover-lift">
-            <div class="card-body py-4">
-                <i class="fas fa-users fa-3x mb-3 opacity-75"></i>
-                <h2 class="display-4 fw-bold mb-1">{{ jobs|applications__count__sum|default:0 }}</h2>
-                <p class="lead mb-0">Total Applications</p>
-            </div>
+  <div class="col-lg-3 col-md-6">
+    <div class="card border-0 shadow-lg h-100 text-center bg-success text-white hover-lift">
+        <div class="card-body py-4">
+            <i class="fas fa-users fa-3x mb-3 opacity-75"></i>
+            <h2 class="display-4 fw-bold mb-1">{{ total_applications|default:0 }}</h2> 
+            <p class="lead mb-0">Total Applications</p>
         </div>
     </div>
+</div>
+
     <div class="col-lg-3 col-md-6">
         <div class="card border-0 shadow-lg h-100 text-center bg-info text-white hover-lift">
             <div class="card-body py-4">
@@ -59,18 +60,28 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-3 col-md-6">
-        <a href="{% url 'jobs:employer_all_applications' %}" class="card border-0 shadow-lg h-100 text-decoration-none hover-lift">
-            <div class="card-body py-4 text-center text-info">
-                <i class="fas fa-list fa-3x mb-3 opacity-75"></i>
-                <h4 class="fw-bold mb-1">View All Applications</h4>
-                <p class="lead mb-0">Across all jobs</p>
-            </div>
+    <div class="card-footer bg-transparent border-0 pt-0">
+    {% if job %}
+        <!-- ✅ SINGLE JOB: Status update available -->
+        <a href="{% url 'jobs:update_application_status' job_id=job.id pk=application.pk %}" 
+           class="btn btn-outline-primary w-100 fw-semibold shadow-sm">
+            <i class="fas fa-edit me-2"></i>
+            {{ application.get_status_display|title }} → Change Status
         </a>
-    </div>
+    {% else %}
+        <!-- ✅ ALL JOBS: Read-only status badge -->
+        <span class="badge fs-6 w-100 text-center py-2 fw-semibold
+            {% if application.status == 'hired' %}bg-success 
+            {% elif application.status == 'shortlisted' %}bg-warning text-dark 
+            {% elif application.status == 'rejected' %}bg-danger 
+            {% else %}bg-secondary {% endif %}">
+            {{ application.get_status_display }}
+        </span>
+    {% endif %}
 </div>
 
-<!-- Jobs Grid -->
+
+<!-- Jobs Grid --> ,
 <div class="row g-4">
     {% for job in jobs %}
     <div class="col-xl-4 col-lg-6 col-md-6">
@@ -113,13 +124,12 @@
                 <div class="mb-4">
                     <span class="badge bg-info fs-5 px-4 py-3 w-100 d-block">
                         <i class="fas fa-users me-2"></i>
-                        {{ job.applications.count }} Application{{ job.applications.count|pluralize }}
+                        {{ job.applications.count }} Application{{ job.applications_count|pluralize }}
                     </span>
                 </div>
                 
                 <!-- Action Buttons -->
                 <div class="btn-group w-100" role="group">
-                    <!-- ✅ FIXED: Namespaced URL -->
                     <a href="{% url 'jobs:employer_job_applications' job.pk %}" 
                        class="btn btn-primary w-100 mb-2">
                         <i class="fas fa-users me-1"></i>View Applicants
@@ -139,7 +149,6 @@
             </div>
             <h2 class="fw-light mb-4 display-4">No jobs posted yet</h2>
             <p class="lead text-muted mb-5 lh-lg">Start building your dream team by posting your first job opening!</p>
-            <!-- ✅ FIXED: Namespaced URL -->
             <a href="{% url 'jobs:job_create' %}" class="btn btn-primary btn-lg px-6 py-3 shadow-lg">
                 <i class="fas fa-plus-circle me-3"></i>Post Your First Job
             </a>

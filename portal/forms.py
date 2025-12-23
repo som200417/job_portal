@@ -1,5 +1,5 @@
 from django import forms
-from .models import Application
+from .models import Application,Profile
 
 class ApplyForm(forms.ModelForm): 
     class Meta:
@@ -38,4 +38,21 @@ class ApplicationStatusForm(forms.ModelForm):
                 'required': True
             })
         }
-        
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['phone', 'bio', 'linkedin', 'github', 'resume', 'skills']
+        widgets = {
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'bio': forms.Textarea(attrs={
+                'class': 'form-control', 
+                'rows': 4,
+                'placeholder': 'Tell employers about your experience...'
+            }),
+            'linkedin': forms.URLInput(attrs={'class': 'form-control'}),
+            'github': forms.URLInput(attrs={'class': 'form-control'}),
+            'skills': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Python, Django, JavaScript, React...'
+            }),
+        }  

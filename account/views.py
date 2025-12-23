@@ -25,4 +25,4 @@ class SignupView(CreateView):
 def custom_logout(request):
     logout(request)
     messages.success(request, 'You have been logged out successfully!')
-    return redirect('job_list')
+    return redirect('jobs:job_list')

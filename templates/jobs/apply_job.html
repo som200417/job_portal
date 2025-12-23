@@ -81,3 +81,25 @@
     box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
 }
 </style>
+<!-- Apply button onclick -->
+<script>
+async function applyJob(jobId) {
+    const token = localStorage.getItem('access_token');
+    
+    const response = await fetch(`/jobs/api/apply/${jobId}/`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            cover_letter: document.getElementById('cover_letter').value
+        })
+    });
+    
+    if (response.ok) {
+        alert('Application submitted!');
+        location.reload();
+    }
+}
+</script>

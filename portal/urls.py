@@ -1,20 +1,37 @@
 from django.urls import path, re_path
 from . import views
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 app_name = 'jobs'  
 
 urlpatterns = [
+    # JOB LIST & DETAIL
     path('', views.JobListView.as_view(), name='job_list'),
     path('<int:pk>/', views.JobDetailView.as_view(), name='job_detail'),
     re_path(r'^(?P<pk>\d+)/([^/]+)/?$', views.JobDetailView.as_view(), name='job_detail_slug'),
+    
+    # APPLY
     path('apply/<int:pk>/', views.ApplyJobView.as_view(), name='apply_job'),
     path('applied/', views.ApplicationSuccessView.as_view(), name='application_success'),
-
+    
+    # EMPLOYER
     path('employer/', views.EmployerDashboardView.as_view(), name='employer_dashboard'),
     path('employer/create/', views.JobCreateView.as_view(), name='job_create'),
     path('employer/applications/', views.EmployerApplicationView.as_view(), name='employer_all_applications'),
     path('employer/applications/<int:job_id>/', views.EmployerApplicationView.as_view(), name='employer_job_applications'),
-    path('employer/applications/<int:job_id>/<int:pk>/status/', views.UpdateApplicationStatusView.as_view(), name='update_application_status'),
+    
+    # ✅ FIXED: Use CLASS VIEW (line 15 → ClassView.as_view())
+    path('employer/applications/<int:job_id>/<int:pk>/status/', 
+         views.UpdateApplicationStatusView.as_view(),  # ✅ ClassView
+         name='update_application_status'),
+    
+    # SEEKER
     path('seeker/', views.SeekerDashboardView.as_view(), name='seeker_dashboard'),
     path('seeker/applications/', views.SeekerApplicationsView.as_view(), name='seeker_applications'),
+    path('seeker/profile/', views.ProfileUpdateView.as_view(), name='profile_update'),
+    
+    # API
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/profile/', views.ProfileAPIView.as_view(), name='profile_api'),
 ]

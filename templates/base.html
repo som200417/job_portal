@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static %}
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
@@ -43,6 +44,22 @@ html, body {
 body {
     display: flex;
     flex-direction: column;
+}
+/* Search Bar */
+.search-bar {
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.search-bar:focus-within {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.search-bar .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: none;
+    z-index: 0;
 }
 
 main {
@@ -311,5 +328,11 @@ main {
             }, 5000);
         });
     </script>
+        <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/auth.js' %}"></script>  <!-- ✅ JWT UTILS -->
+    
+    <!-- PAGE-SPECIFIC JS -->
+    {% block extra_js %}
+    {% endblock %}
 </body>
 </html>

@@ -41,3 +41,16 @@ class Application(models.Model):
     status=models.CharField(max_length=20,choices= STATUS_CHOICE,default="applied")
     def __str__(self):
         return f"{self.applicant.username} > {self.job.title}"
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='job_profile')
+    phone = models.CharField(max_length=15, blank=True)
+    bio = models.TextField(max_length=500, blank=True)
+    linkedin = models.URLField(blank=True)
+    github = models.URLField(blank=True)
+    resume = models.FileField(upload_to='profiles/', blank=True, null=True)
+    skills = models.TextField(blank=True, help_text="Comma-separated: Python, Django, React")
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.user.username}'s Profile"

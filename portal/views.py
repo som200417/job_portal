@@ -3,16 +3,39 @@ from django.views.generic import ListView,CreateView,DetailView,TemplateView,Upd
 from django.contrib.auth.mixins import LoginRequiredMixin,UserPassesTestMixin
 from .mixins import EmployerRequiredMixin
 from django.urls import reverse_lazy
-from .forms import ApplyForm,ApplicationStatusForm
-from .models import Job,Application
+from .forms import ApplyForm,ApplicationStatusForm,ProfileForm
+from .models import Job,Application,Profile
 from django.contrib import messages
 from django.utils import timezone
-class ApplyJobView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # ✅ FIXED: Added UserPassesTestMixin
+from django.db.models import Q
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .serializers import LoginSerializer,ProfileSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.db.models import Count,Sum
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+
+@api_view(['POST'])
+def update_application_status(request, job_id, pk):
+    job = get_object_or_404(Job, id=job_id, employer=request.user)
+    application = get_object_or_404(Application, id=pk, job=job)
+    
+    new_status = request.data.get('status')
+    if new_status in dict(Application.STATUS_CHOICE):
+        application.status = new_status
+        application.save()
+        return Response({'status': application.get_status_display()})
+    
+    return Response({'error': 'Invalid status'}, status=400)
+class ApplyJobView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  
     model = Application
     form_class = ApplyForm
     template_name = 'jobs/job_detail.html'
     
-    def test_func(self):  # ✅ NOW WORKS with UserPassesTestMixin
+    def test_func(self):  
         return not self.request.user.jobs.exists()  # Seeker only
     
     def get_context_data(self, **kwargs):
@@ -46,14 +69,24 @@ class ApplyJobView(LoginRequiredMixin, UserPassesTestMixin, CreateView):  # ✅ 
     def get_success_url(self):
         return reverse_lazy('application_success')
 
-class EmployerDashboardView(LoginRequiredMixin, EmployerRequiredMixin, ListView):  
+
+class EmployerDashboardView(LoginRequiredMixin, EmployerRequiredMixin, ListView): 
     model = Job
     template_name = 'jobs/employer_dashboard.html'
     context_object_name = 'jobs'
     
     def get_queryset(self):
-        return Job.objects.filter(employer=self.request.user)
-
+        return Job.objects.filter(employer=self.request.user).annotate(
+            applications_count=Count('applications')
+        )
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_applications'] = self.object_list.aggregate(
+            total=Sum('applications_count')
+        )['total'] or 0 
+        return context
+        
 class JobCreateView(LoginRequiredMixin, EmployerRequiredMixin, CreateView): 
     model = Job
     fields = ['title', 'company_name', 'location', 'description', 
@@ -71,7 +104,35 @@ class JobListView(ListView):
     model=Job
     template_name='jobs/job_list.html'
     context_object_name='jobs'
-    queryset=Job.objects.filter(is_active=True).order_by('-created_at')
+    paginate_by=9
+    def get_queryset(self):
+        queryset = Job.objects.filter(is_active=True).select_related('employer').order_by('-created_at')
+        
+
+        query = self.request.GET.get('q')
+        location = self.request.GET.get('location')
+        employment_type = self.request.GET.get('employment_type')
+        if query:
+            queryset = queryset.filter(
+                Q(title__icontains=query) |          
+                Q(company_name__icontains=query) |   
+                Q(description__icontains=query)      
+            )
+        if location:
+            queryset = queryset.filter(location__icontains=location)
+            
+        if employment_type:
+            queryset = queryset.filter(employment_type=employment_type)
+            
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '')
+        context['location'] = self.request.GET.get('location', '')
+        context['employment_type'] = self.request.GET.get('employment_type', '')
+        return context
+    
 
 
 class JobDetailView(DetailView):
@@ -168,7 +229,7 @@ class UpdateApplicationStatusView(LoginRequiredMixin, EmployerRequiredMixin, Upd
         return context
     
     def get_success_url(self):
-        return reverse_lazy('employer_job_applications', kwargs={'job_id': self.kwargs['job_id']})
+        return reverse_lazy('jobs:employer_job_applications', kwargs={'job_id': self.kwargs['job_id']})
 class SeekerDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'jobs/seeker_dashboard.html'
     
@@ -176,7 +237,7 @@ class SeekerDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView)
 
         return not hasattr(self.request.user, 'jobs') or self.request.user.jobs.count() == 0
     
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs):     
         context = super().get_context_data(**kwargs)
         context['recent_jobs'] = Job.objects.filter(is_active=True).select_related('employer')[:6]
         context['applied_count'] = self.request.user.applications.count()
@@ -215,3 +276,40 @@ class ApplicationSuccessView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
             context['total_applications'] = 0
             
         return context
+    
+class ProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    form_class = ProfileForm
+    template_name = 'jobs/profile_update.html'
+    
+    def test_func(self):
+        return not self.request.user.jobs.exists()
+    
+    def get_object(self):
+        profile, created = Profile.objects.get_or_create(user=self.request.user)
+        return profile
+    
+    def get_success_url(self):
+        messages.success(self.request, "Profile updated successfully!")
+        return reverse_lazy('jobs:seeker_dashboard')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['skills_list'] = self.object.skills.split(',') if self.object.skills else []
+        return context
+    def form_valid(self, form):
+        response = super().form_valid(form)
+      
+        refresh = RefreshToken.for_user(self.request.user)
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'message': 'Profile updated!'
+        })
+    
+class ProfileAPIView(generics.RetrieveUpdateAPIView):
+    serializer_class = ProfileSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self):
+        profile, created = Profile.objects.get_or_create(user=self.request.user)
+        return profile
