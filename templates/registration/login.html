@@ -1,46 +1,181 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <h2>Login</h2>
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-header">
+            <i class="fas fa-sign-in-alt fa-3x mb-4 text-primary"></i>
+            <h2 class="mb-3">Welcome Back</h2>
+            <p class="text-muted mb-0">Sign in to your JobPortal account</p>
+        </div>
+        
         <form method="post">
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit" class="btn btn-primary">Login</button>
+            
+            <div class="form-actions mt-4">
+                <button type="submit" class="btn btn-login w-100">Sign In</button>
+            </div>
         </form>
-        <p><a href="{% url 'signup' %}">No account? Sign up</a></p>
+        
+        <div class="text-center mt-4">
+            <p class="mb-0"><small class="text-muted">No account? <a href="{% url 'signup' %}" class="text-primary fw-semibold text-decoration-none">Sign up</a></small></p>
+        </div>
     </div>
 </div>
-<script>
-const loginForm = document.getElementById('loginForm');
 
-loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const formData = new FormData(loginForm);
-    const data = {
-        username: formData.get('username'),
-        password: formData.get('password')
-    };
-    
-    try {
-        const response = await fetch('/jobs/api/token/', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
-        });
-        
-        const tokens = await response.json();
-        
-        if (tokens.access) {
-            localStorage.setItem('access_token', tokens.access);
-            localStorage.setItem('refresh_token', tokens.refresh);
-            window.location.href = "{% url 'jobs:seeker_dashboard' %}";
-        }
-    } catch (error) {
-        console.error('Login failed:', error);
+<style>
+.login-wrapper {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.login-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-header h2 {
+    color: #1e293b;
+    font-weight: 700;
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+/* FORM STYLING - WORKS WITH {{ form.as_p }} */
+.login-card form p {
+    margin-bottom: 24px;
+}
+
+.login-card form p:last-child {
+    margin-bottom: 0;
+}
+
+/* FIELDSET & LEGEND */
+.login-card form fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 24px 0;
+}
+
+.login-card form legend {
+    display: none;
+}
+
+/* LABELS */
+.login-card form label {
+    display: block;
+    font-weight: 600;
+    color: #475569;
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+
+/* INPUTS */
+.login-card form input[type="text"],
+.login-card form input[type="email"],
+.login-card form input[type="password"] {
+    width: 100%;
+    padding: 16px 20px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 16px;
+    background: #fff;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.login-card form input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
+}
+
+/* ERROR MESSAGES */
+.login-card form .errorlist {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0 0;
+}
+
+.login-card form .errorlist li {
+    color: #ef4444;
+    font-size: 14px;
+    margin: 4px 0;
+    background: #fef2f2;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border-left: 4px solid #ef4444;
+}
+
+/* BUTTON */
+.btn-login {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 16px 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    height: 56px;
+    letter-spacing: 0.5px;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(59, 130, 246, 0.3);
+    color: white;
+}
+
+.btn-login:active {
+    transform: translateY(0);
+}
+
+/* LINKS */
+.login-card a {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.login-card a:hover {
+    text-decoration: underline;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .login-card {
+        padding: 30px 24px;
+        margin: 10px;
     }
-});
-</script>
+    
+    .login-header h2 {
+        font-size: 24px;
+    }
+    
+    .login-wrapper {
+        padding: 10px;
+    }
+}
 
+/* UTILITY */
+.text-primary { color: #3b82f6 !important; }
+.shadow-lg { box-shadow: 0 20px 60px rgba(0,0,0,0.1) !important; }
+</style>
 {% endblock %}
